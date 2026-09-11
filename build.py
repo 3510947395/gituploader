@@ -32,8 +32,8 @@ def run_tests():
         project_root = Path(__file__).parent
         os.chdir(project_root)
         
-        # 运行测试
-        result = subprocess.run([sys.executable, '-m', 'pytest', 'tests/', '-v'], 
+        result = subprocess.run([sys.executable, '-m', 'unittest', 'discover',
+                     '-s', 'tests', '-v'],
                               capture_output=True, text=True)
         
         if result.returncode == 0:
@@ -57,8 +57,9 @@ def build_package():
         project_root = Path(__file__).parent
         os.chdir(project_root)
         
-        # 构建wheel
-        result = subprocess.run([sys.executable, '-m', 'build', '--wheel'], 
+        # 使用 pip 构建 wheel，避免本目录的 build.py 遮蔽 build 模块
+        result = subprocess.run([sys.executable, '-m', 'pip', 'wheel', '.',
+                     '--no-deps', '--wheel-dir', 'dist'],
                               capture_output=True, text=True)
         
         if result.returncode == 0:

@@ -1,0 +1,2 @@
+[console_scripts]
+gitup = gitup:main

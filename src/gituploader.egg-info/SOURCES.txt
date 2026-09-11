@@ -1,0 +1,13 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.py
+src/gitup.py
+src/gituploader.egg-info/PKG-INFO
+src/gituploader.egg-info/SOURCES.txt
+src/gituploader.egg-info/dependency_links.txt
+src/gituploader.egg-info/entry_points.txt
+src/gituploader.egg-info/not-zip-safe
+src/gituploader.egg-info/top_level.txt
+tests/test_gitup.py
