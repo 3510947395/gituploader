@@ -152,7 +152,7 @@ class GitUploader:
 
 def main():
     parser = argparse.ArgumentParser(description="GitUploader - Git上传命令生成工具")
-    parser.add_argument("--version", action="version", version="gituploader 1.0.0")
+    parser.add_argument("--version", action="version", version="gituploader 1.0.1")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
     
     # repo 命令

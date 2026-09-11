@@ -83,6 +83,8 @@ def build_deb_package():
         str(project_root / 'build_deb.py'),
         '--output',
         str(output_dir),
+        '--prefix',
+        os.environ.get('PREFIX', '/data/data/com.termux/files/usr'),
     ])
     return result.returncode == 0
 

@@ -11,22 +11,21 @@ from pathlib import Path
 
 def build_package(output_dir: Path, prefix: str) -> Path:
     project_root = Path(__file__).parent
-    version = "1.0.0"
+    version = "1.0.1"
     package_root = output_dir / f"gituploader_{version}_all"
     if package_root.exists():
         shutil.rmtree(package_root)
 
-    python_dir = package_root / prefix.lstrip("/") / "lib" / (
-        f"python{sys.version_info.major}.{sys.version_info.minor}"
-    ) / "site-packages"
+    library_dir = package_root / prefix.lstrip("/") / "lib" / "gituploader"
     bin_dir = package_root / prefix.lstrip("/") / "bin"
     debian_dir = package_root / "DEBIAN"
-    python_dir.mkdir(parents=True)
+    library_dir.mkdir(parents=True)
     bin_dir.mkdir(parents=True)
     debian_dir.mkdir(parents=True)
 
-    shutil.copy2(project_root / "src" / "gitup.py", python_dir / "gitup.py")
-    wrapper = "#!/bin/sh\nexec python3 -m gitup \"$@\"\n"
+    shutil.copy2(project_root / "src" / "gitup.py", library_dir / "gitup.py")
+    script_path = f"{prefix.rstrip('/')}/lib/gituploader/gitup.py"
+    wrapper = f"#!/bin/sh\nexec python3 \"{script_path}\" \"$@\"\n"
     (bin_dir / "gitup").write_text(wrapper, encoding="utf-8")
     (bin_dir / "gitup").chmod(0o755)
     control = "\n".join([
@@ -53,8 +52,8 @@ def main() -> int:
     parser.add_argument("--output", default="dist", help="输出目录")
     parser.add_argument(
         "--prefix",
-        default=os.environ.get("PREFIX", "/usr"),
-        help="安装前缀，Termux 中通常来自 PREFIX 环境变量",
+        default=os.environ.get("PREFIX", "/data/data/com.termux/files/usr"),
+        help="安装前缀，Termux 默认使用 /data/data/com.termux/files/usr",
     )
     args = parser.parse_args()
     output_dir = Path(args.output).resolve()

@@ -12,7 +12,7 @@ GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
 ```bash
 apt update
-apt install ./gituploader_1.0.0_all.deb
+apt install ./gituploader_1.0.1_all.deb
 gitup -h
 ```
 
