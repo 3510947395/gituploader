@@ -11,6 +11,7 @@ import os
 import json
 import re
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -150,8 +151,80 @@ class GitUploader:
             command = command.replace(placeholder, value)
         return command
 
-def main():
-    parser = argparse.ArgumentParser(description="GitUploader - Git上传命令生成工具")
+def _read_input(prompt: str) -> Optional[str]:
+    """读取菜单输入，退出或 EOF 时返回 None。"""
+    try:
+        value = input(prompt).strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return None
+    return value
+
+
+def interactive_menu(uploader: GitUploader) -> None:
+    """启动交互菜单；明确的命令行参数不会进入这里。"""
+    while True:
+        print("\nGitUploader 交互菜单")
+        print("1. 创建仓库配置")
+        print("2. 查看仓库配置")
+        print("3. 添加上传模板")
+        print("4. 查看上传模板")
+        print("5. 生成上传命令")
+        print("6. 执行上传模板")
+        print("0. 退出")
+        choice = _read_input("请选择操作: ")
+        if choice is None or choice == "0":
+            print("已退出")
+            return
+        if choice == "1":
+            name = _read_input("仓库配置名称: ")
+            if name:
+                uploader.create_repo(name)
+        elif choice == "2":
+            repos = uploader.list_repos()
+            print("\n".join(f"- {name}" for name in repos) if repos else "没有可用仓库")
+        elif choice == "3":
+            repo_name = _read_input("仓库配置名称: ")
+            template_name = _read_input("模板名称: ")
+            command = _read_input("完整上传命令: ")
+            if repo_name and template_name and command:
+                uploader.add_template(repo_name, template_name, command)
+        elif choice == "4":
+            repo_name = _read_input("仓库配置名称: ")
+            if repo_name:
+                templates = uploader.list_templates(repo_name)
+                if templates:
+                    for name, command in templates.items():
+                        print(f"- {name}: {command}")
+                else:
+                    print("没有可用模板")
+        elif choice in {"5", "6"}:
+            repo_name = _read_input("仓库配置名称: ")
+            template_name = _read_input("模板名称: ")
+            if repo_name and template_name:
+                if choice == "5":
+                    command = uploader.generate_template(repo_name, template_name)
+                    print(command if command is not None else "仓库或模板不存在")
+                else:
+                    uploader.run_template(repo_name, template_name)
+        else:
+            print("无效选项，请重新选择")
+
+
+def main(argv=None):
+    examples = """示例:
+  gitup                              打开交互菜单
+  gitup repo create myproject        创建仓库配置
+  gitup template add myproject daily \"git add . && git push\"
+  gitup template list myproject      查看模板
+  gitup generate myproject daily     生成命令，不执行
+  gitup run myproject daily          执行模板命令
+"""
+    parser = argparse.ArgumentParser(
+        description="GitUploader - Git上传命令生成工具",
+        epilog=examples,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--version", action="version", version="gituploader 1.0.1")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
     
@@ -189,7 +262,12 @@ def main():
     generate_parser.add_argument("repo_name", help="仓库名称")
     generate_parser.add_argument("template_name", help="模板名称")
     
-    args = parser.parse_args()
+    command_args = sys.argv[1:] if argv is None else argv
+    if not command_args:
+        interactive_menu(GitUploader())
+        return 0
+
+    args = parser.parse_args(command_args)
     
     uploader = GitUploader()
     

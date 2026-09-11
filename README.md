@@ -37,6 +37,26 @@ gitup -h
 
 ## 快速开始
 
+### 直接打开交互菜单
+
+不带参数运行 `gitup` 会打开交互菜单，适合第一次使用或不熟悉命令时操作：
+
+```bash
+gitup
+```
+
+菜单支持创建仓库配置、查看仓库、添加模板、查看模板、生成命令和执行模板。输入 `0` 可以退出菜单。
+
+### 使用命令直接操作
+
+如果输入了具体命令，GitUploader 会直接执行，不会打开交互菜单。
+
+```bash
+gitup repo create myproject
+gitup template list myproject
+gitup generate myproject daily
+```
+
 ### 1. 创建项目配置
 
 ```bash

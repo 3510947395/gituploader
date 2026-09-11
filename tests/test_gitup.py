@@ -15,7 +15,7 @@ import sys
 # 添加src目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from gitup import GitUploader
+from gitup import GitUploader, main
 
 
 class TestGitUploader(unittest.TestCase):
@@ -115,6 +115,18 @@ class TestGitUploader(unittest.TestCase):
 
         self.assertIsNotNone(command)
         self.assertRegex(command, r'git commit -m "\d{4}-\d{2}-\d{2} \d{4} \{unknown\}"')
+
+    @patch('gitup.interactive_menu')
+    def test_main_without_arguments_opens_menu(self, interactive_menu):
+        """测试无参数启动交互菜单"""
+        self.assertEqual(main([]), 0)
+        interactive_menu.assert_called_once()
+
+    @patch('gitup.interactive_menu')
+    def test_main_with_command_skips_menu(self, interactive_menu):
+        """测试有明确命令时不打开菜单"""
+        self.assertEqual(main(['repo', 'list']), 0)
+        interactive_menu.assert_not_called()
 
 
 if __name__ == '__main__':
