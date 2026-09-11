@@ -77,7 +77,13 @@ def build_package():
 def build_deb_package():
     """构建 Debian/Termux 安装包"""
     project_root = Path(__file__).parent
-    result = subprocess.run([sys.executable, str(project_root / 'build_deb.py')])
+    output_dir = project_root / 'dist' / 'deb'
+    result = subprocess.run([
+        sys.executable,
+        str(project_root / 'build_deb.py'),
+        '--output',
+        str(output_dir),
+    ])
     return result.returncode == 0
 
 def install_package():
@@ -162,6 +168,10 @@ def main():
         
         if not build_package():
             print("构建失败，停止安装")
+            sys.exit(1)
+
+        if not build_deb_package():
+            print("Debian 安装包构建失败，停止安装")
             sys.exit(1)
         
         if not install_package():
