@@ -1,0 +1,1 @@
+Package: gituploader`nVersion: 1.0.0`nSection: utils`nPriority: optional`nArchitecture: all`nDepends: python3`nMaintainer: GitUploader Team <team@gituploader.com>`nDescription: Git上传命令生成工具`n GitUploader是一个用于生成和管理git上传命令的实用工具。`n 它支持创建多个仓库，每个仓库可以创建多个模板，`n 每个模板可以保存一套完整的上传命令。`n 支持占位符替换，方便生成符合不同场景的git命令。`n

@@ -1,0 +1,1 @@
+#!/usr/bin/env python3`n`nimport sys`nimport os`n`n# 获取当前脚本所在目录`nscript_dir = os.path.dirname(os.path.abspath(__file__))`n`n# 导入主模块`nsys.path.insert(0, script_dir)`nimport gitup`n`n# 运行主函数`ngitup.main()`n

@@ -1,0 +1,1 @@
+#!/bin/sh`nset -e`n`n# 移除符号链接`nif [ -L /usr/bin/gitup ]; then`n    rm /usr/bin/gitup`nfi`n`n# 保留用户配置文件`necho "GitUploader 配置文件已保留在 /home/.gitup"`n

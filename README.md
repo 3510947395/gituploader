@@ -1,0 +1,134 @@
+# GitUploader
+
+GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
+
+你可以按项目创建多个“仓库配置”，再为每个项目保存多套上传模板。例如：日常提交、发布版本、提交并推送等。模板中的固定命令保持不变，日期、时间、用户名等实时内容会在使用时自动替换。
+
+## 安装
+
+### 从 GitHub Release 安装
+
+配置 Termux交流社区 镜像源，然后在 Termux 中执行：
+
+```bash
+apt update
+apt install ./gituploader_1.0.0_all.deb
+gitup -h
+```
+
+安装完成后，如果能看到帮助信息，就表示安装成功。
+
+### 从 APT 镜像安装
+
+如果软件已经发布到 APT 镜像，可以直接安装：
+
+```bash
+apt update
+apt install gituploader
+gitup -h
+```
+
+### 从 Python 安装
+
+```bash
+pip install gituploader
+gitup -h
+```
+
+## 快速开始
+
+### 1. 创建项目配置
+
+```bash
+gitup repo create myproject
+```
+
+`myproject` 是 GitUploader 中的配置名称，可以为不同项目分别创建配置。
+
+查看已有配置：
+
+```bash
+gitup repo list
+```
+
+### 2. 创建上传模板
+
+```bash
+gitup template add myproject daily "git add . && git commit -m 'Update {date}' && git push"
+```
+
+查看某个项目的全部模板：
+
+```bash
+gitup template list myproject
+```
+
+一个项目可以保存多套模板，例如：
+
+```bash
+gitup template add myproject commit "git add . && git commit -m 'Update {date} {time}'"
+gitup template add myproject release "git add . && git commit -m 'Release {year}.{month}.{day}' && git push --tags"
+```
+
+### 3. 生成当前上传命令
+
+```bash
+gitup generate myproject daily
+```
+
+该命令只输出替换完成后的命令，不会自动执行。你可以先检查输出，再复制到当前 Git 项目目录执行。
+
+### 4. 执行模板
+
+```bash
+gitup run myproject daily
+```
+
+执行前请确认当前目录是正确的 Git 项目目录，并确认模板命令内容可信。
+
+## 实时占位符
+
+模板中可以自由组合以下占位符：
+
+| 占位符 | 生成内容示例 |
+| --- | --- |
+| `{date}` | `2026-09-11` |
+| `{time}` | `14:30:05` |
+| `{datetime}` | `2026-09-11 14:30:05` |
+| `{year}` | `2026` |
+| `{month}` | `09` |
+| `{day}` | `11` |
+| `{timestamp}` | `20260911143005` |
+| `{username}` | 当前用户名 |
+| `{hostname}` | 当前设备名称 |
+
+例如：
+
+```bash
+gitup template add myproject daily "git add . && git commit -m 'Update {date} {time}' && git push"
+```
+
+GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`%hostname`。
+
+## 数据保存位置
+
+模板数据默认保存在：
+
+```text
+~/.gituploader/
+```
+
+请定期备份该目录，以免丢失自己的模板配置。
+
+## GitHub 自动构建
+
+项目发布新版本时，GitHub Actions 会自动构建 Python 安装包和 Termux/Debian `.deb` 安装包。用户通常只需要从 GitHub Releases 下载最新 `.deb` 文件，不需要自行编译。
+
+## 获取帮助
+
+```bash
+gitup -h
+gitup repo -h
+gitup template -h
+gitup generate -h
+```

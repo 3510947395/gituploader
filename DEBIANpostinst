@@ -1,0 +1,1 @@
+#!/bin/sh`nset -e`n`n# 确保配置目录存在`nmkdir -p /home/.gitup`n`n# 设置权限`nchmod 755 /home/.gitup`n`n# 创建符号链接`nif [ ! -f /usr/bin/gitup ]; then`n    ln -s /usr/bin/gitup.py /usr/bin/gitup`nfi`n`n# 显示安装完成信息`necho "GitUploader 安装完成!"`necho "使用方法: gitup --help"`n
