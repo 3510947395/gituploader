@@ -375,7 +375,7 @@ def main(argv=None):
         epilog=examples,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--version", action="version", version="gituploader 1.0.8")
+    parser.add_argument("--version", action="version", version="gituploader 1.0.9")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
 
     repo_parser = subparsers.add_parser("repo", help="仓库管理")

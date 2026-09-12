@@ -47,13 +47,13 @@ jobs:
 
       - name: Verify Debian package
         run: |
-          test -f dist/deb/gituploader_1.0.8_all.deb
-          file dist/deb/gituploader_1.0.8_all.deb
-          dpkg-deb --info dist/deb/gituploader_1.0.8_all.deb
-          echo "Debian package: $(pwd)/dist/deb/gituploader_1.0.8_all.deb"
+          test -f dist/deb/gituploader_1.0.9_all.deb
+          file dist/deb/gituploader_1.0.9_all.deb
+          dpkg-deb --info dist/deb/gituploader_1.0.9_all.deb
+          echo "Debian package: $(pwd)/dist/deb/gituploader_1.0.9_all.deb"
           echo "### Debian package" >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          echo "dist/deb/gituploader_1.0.8_all.deb" >> "$GITHUB_STEP_SUMMARY"
+          echo "dist/deb/gituploader_1.0.9_all.deb" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish GitHub Release
@@ -63,4 +63,4 @@ jobs:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release_tag }}
           name: GitUploader ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release_tag }}
           generate_release_notes: true
-          files: dist/deb/gituploader_1.0.8_all.deb
+          files: dist/deb/gituploader_1.0.9_all.deb

@@ -6,34 +6,16 @@ GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
 ## 安装
 
-### 从 GitHub Release 安装
-
-配置 Termux交流社区 镜像源，然后在 Termux 中执行：
-
-```bash
-apt update
-apt install ./gituploader_1.0.8_all.deb
-gitup -h
-```
-
-安装完成后，如果能看到帮助信息，就表示安装成功。
-
 ### 从 APT 镜像安装
 
-如果软件已经发布到 APT 镜像，可以直接安装：
+如果已经配置社区镜像，可以直接安装：
 
 ```bash
 apt update
-apt install gituploader
+apt install gituploader -y
 gitup -h
 ```
 
-### 从 Python 安装
-
-```bash
-pip install gituploader
-gitup -h
-```
 
 ## 快速开始
 
@@ -188,8 +170,8 @@ GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`
 1. 推送版本标签，自动创建 Release：
 
 ```bash
-git tag v1.0.8
-git push origin v1.0.8
+git tag v1.0.9
+git push origin v1.0.9
 ```
 
 2. 在 GitHub 的 `Actions -> Build GitUploader -> Run workflow` 中勾选 `publish_release`，填写 `release_tag`，然后运行。
@@ -197,7 +179,7 @@ git push origin v1.0.8
 构建成功后打开 `Releases -> Assets`，只下载文件名以 `.deb` 结尾的文件：
 
 ```text
-gituploader_1.0.8_all.deb
+gituploader_1.0.9_all.deb
 ```
 
 不要点击 `Source code (zip)`，它是 GitHub 自动生成的源码压缩包，不是安装包。
@@ -206,22 +188,22 @@ gituploader_1.0.8_all.deb
 
 ```bash
 git add .
-git commit -m "Release gituploader 1.0.8"
+git commit -m "Release gituploader 1.0.9"
 git push origin main
-git tag v1.0.8
-git push origin v1.0.8
+git tag v1.0.9
+git push origin v1.0.9
 ```
 
 请从 GitHub Release 页面 Assets 中下载真正的 `.deb` 文件，例如：
 
 ```text
-gituploader_1.0.8_all.deb
+gituploader_1.0.9_all.deb
 ```
 
 工作流只将 `.deb` 发布为 Release Asset。`.deb` 是 Debian 安装包，不能用解压软件判断其内容，请直接安装：
 
 ```bash
-apt install ./gituploader_1.0.8_all.deb
+apt install ./gituploader_1.0.9_all.deb
 ```
 
 ## 获取帮助
