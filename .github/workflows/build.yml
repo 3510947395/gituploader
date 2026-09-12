@@ -49,6 +49,7 @@ jobs:
         run: |
           test -f dist/deb/gituploader_1.0.3_all.deb
           file dist/deb/gituploader_1.0.3_all.deb
+          dpkg-deb --info dist/deb/gituploader_1.0.3_all.deb
           echo "Debian package: $(pwd)/dist/deb/gituploader_1.0.3_all.deb"
           echo "### Debian package" >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
@@ -62,7 +63,4 @@ jobs:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release_tag }}
           name: GitUploader ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release_tag }}
           generate_release_notes: true
-          files: |
-            dist/deb/*.deb
-            dist/*.whl
-            dist/*.tar.gz
+          files: dist/deb/gituploader_1.0.3_all.deb

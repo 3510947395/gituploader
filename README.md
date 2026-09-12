@@ -155,7 +155,13 @@ git push origin v1.0.3
 
 2. 在 GitHub 的 `Actions -> Build GitUploader -> Run workflow` 中勾选 `publish_release`，填写 `release_tag`，然后运行。
 
-构建成功后打开 `Releases -> Assets`，下载原始的 `.deb` 文件。
+构建成功后打开 `Releases -> Assets`，只下载文件名以 `.deb` 结尾的文件：
+
+```text
+gituploader_1.0.3_all.deb
+```
+
+不要点击 `Source code (zip)`，它是 GitHub 自动生成的源码压缩包，不是安装包。
 
 发布新版本：
 
@@ -173,7 +179,11 @@ git push origin v1.0.3
 gituploader_1.0.3_all.deb
 ```
 
-工作流不会把安装包上传为 Actions Artifact。Release 页面中的 `.deb` 是原始 Debian 文件，可以直接用于 `apt install`，不会是 `.zip`。
+工作流只将 `.deb` 发布为 Release Asset。`.deb` 是 Debian 安装包，不能用解压软件判断其内容，请直接安装：
+
+```bash
+apt install ./gituploader_1.0.3_all.deb
+```
 
 ## 获取帮助
 
