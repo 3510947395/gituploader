@@ -12,6 +12,10 @@ import json
 import re
 import subprocess
 import sys
+try:
+    import readline
+except ImportError:
+    readline = None
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -196,17 +200,45 @@ class GitUploader:
 def _read_input(prompt: str) -> Optional[str]:
     """读取菜单输入，退出或 EOF 时返回 None。"""
     try:
-        return input(prompt).strip()
+        value = input(prompt)
+        if readline is None:
+            value = re.sub(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|O[@-~])", "", value)
+        return value.strip()
     except (EOFError, KeyboardInterrupt):
         print()
         return None
 
 
-def _read_multiline(prompt: str, end_marker: str = "END") -> Optional[str]:
+def _read_input_with_default(prompt: str, default: str = "") -> Optional[str]:
+    """显示默认文本并允许使用 readline 逐字编辑。"""
+    if readline is None or not default:
+        if default:
+            print(f"{prompt}{default}")
+        return _read_input(prompt)
+    try:
+        readline.set_startup_hook(lambda: readline.insert_text(default))
+        return input(prompt).strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return None
+    finally:
+        readline.set_startup_hook()
+
+
+def _read_multiline(
+    prompt: str, end_marker: str = "END", initial: Optional[List[str]] = None
+) -> Optional[str]:
     """读取可粘贴的多行命令，单独输入 END 表示结束。"""
     print(prompt)
+    if initial:
+        print("原命令已逐行载入，可用方向键移动并修改每一行")
     print(f"输入完成后，单独输入 {end_marker} 保存；直接输入 {end_marker} 取消")
     lines = []
+    for index, default in enumerate(initial or [], 1):
+        line = _read_input_with_default(f"第 {index} 行: ", default)
+        if line is None:
+            return None
+        lines.append(line)
     while True:
         line = _read_input("| ")
         if line is None:
@@ -227,6 +259,22 @@ def _add_template_interactively(uploader: GitUploader, repo_name: str) -> None:
         command = _read_multiline("命令内容（支持多行）:")
         if command:
             uploader.add_template(repo_name, template_name, command)
+
+
+def _print_generated_command(uploader: GitUploader) -> bool:
+    """展开并输出命令，然后结束菜单让用户手动复制执行。"""
+    repo_name = _read_input("仓库名称: ")
+    template_name = _read_input("模板名称: ")
+    if not repo_name or not template_name:
+        return False
+    command = uploader.generate_template(repo_name, template_name)
+    if command is None:
+        print("仓库或模板不存在")
+        return False
+    print("\n生成的命令（请复制到目标 Git 目录手动执行）：")
+    print(command)
+    print("已退出菜单")
+    return True
 
 
 def interactive_menu(uploader: GitUploader) -> None:
@@ -277,9 +325,17 @@ def interactive_menu(uploader: GitUploader) -> None:
             repo_name = _read_input("仓库名称: ")
             template_name = _read_input("模板名称: ")
             if repo_name and template_name:
+                existing = uploader.list_templates(repo_name).get(template_name)
+                if existing is None:
+                    print("仓库或模板不存在")
+                    continue
+                print(f"\n当前命令：\n{existing}")
                 print("可用占位符：{date} {time} {datetime} {year} {month} {day}")
                 print("             {timestamp} {username} {hostname}")
-                command = _read_multiline("新的命令内容（支持多行）:")
+                command = _read_multiline(
+                    "新的命令内容（逐行编辑，支持多行）:",
+                    initial=existing.splitlines(),
+                )
                 if command:
                     uploader.edit_template(repo_name, template_name, command)
         elif choice == "6":
@@ -292,13 +348,13 @@ def interactive_menu(uploader: GitUploader) -> None:
                 else:
                     print("已取消删除")
         elif choice in {"7", "8"}:
-            repo_name = _read_input("仓库名称: ")
-            template_name = _read_input("模板名称: ")
-            if repo_name and template_name:
-                if choice == "7":
-                    command = uploader.generate_template(repo_name, template_name)
-                    print(command if command is not None else "仓库或模板不存在")
-                else:
+            if choice == "7":
+                if _print_generated_command(uploader):
+                    return
+            else:
+                repo_name = _read_input("仓库名称: ")
+                template_name = _read_input("模板名称: ")
+                if repo_name and template_name:
                     uploader.run_template(repo_name, template_name)
         else:
             print("无效选项，请重新选择")
@@ -320,7 +376,7 @@ def main(argv=None):
         epilog=examples,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--version", action="version", version="gituploader 1.0.5")
+    parser.add_argument("--version", action="version", version="gituploader 1.0.8")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
 
     repo_parser = subparsers.add_parser("repo", help="仓库管理")

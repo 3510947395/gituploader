@@ -11,7 +11,7 @@ from pathlib import Path
 
 def build_package(output_dir: Path, prefix: str) -> Path:
     project_root = Path(__file__).parent
-    version = "1.0.5"
+    version = "1.0.8"
     package_root = output_dir / f"gituploader_{version}_all"
     if package_root.exists():
         shutil.rmtree(package_root)

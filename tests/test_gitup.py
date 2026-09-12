@@ -9,6 +9,7 @@ import shutil
 import os
 import json
 import re
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 import sys
 
@@ -168,6 +169,35 @@ class TestGitUploader(unittest.TestCase):
         from gitup import _read_multiline
         with patch('gitup._read_input', side_effect=['git add .', 'git push', 'END']):
             self.assertEqual(_read_multiline('命令'), 'git add .\ngit push')
+
+    def test_generated_command_prints_and_does_not_run(self):
+        """测试生成命令只输出，不自动执行"""
+        self.gitup.create_repo('test_repo')
+        self.gitup.add_template('test_repo', 'daily', 'echo {date}')
+        with patch('gitup._read_input', side_effect=['test_repo', 'daily']), \
+                patch('gitup.subprocess.run') as run_command, \
+                patch('builtins.print') as output:
+            from gitup import _print_generated_command
+            self.assertTrue(_print_generated_command(self.gitup))
+        run_command.assert_not_called()
+        self.assertTrue(any('echo ' in call.args[0] for call in output.call_args_list if call.args))
+
+    def test_edit_menu_shows_existing_command(self):
+        """测试编辑菜单会显示旧命令"""
+        self.gitup.create_repo('test_repo')
+        self.gitup.add_template('test_repo', 'daily', 'echo old\ngit push')
+        inputs = ['5', 'test_repo', 'daily', 'echo new', 'git push --tags', 'END', '0']
+        with patch('builtins.input', side_effect=inputs), patch('builtins.print') as output:
+            from gitup import interactive_menu
+            interactive_menu(self.gitup)
+        self.assertTrue(any(
+            call.args and 'echo old' in call.args[0]
+            for call in output.call_args_list
+        ))
+        self.assertEqual(
+            self.gitup.list_templates('test_repo')['daily'],
+            'echo new\ngit push --tags',
+        )
 
 
 if __name__ == '__main__':

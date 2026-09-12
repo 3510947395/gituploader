@@ -12,7 +12,7 @@ GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
 ```bash
 apt update
-apt install ./gituploader_1.0.5_all.deb
+apt install ./gituploader_1.0.8_all.deb
 gitup -h
 ```
 
@@ -46,6 +46,8 @@ gitup
 ```
 
 菜单支持创建仓库、查看仓库、添加模板、查看模板、编辑模板、删除模板、生成命令和执行模板。输入 `0` 可以退出菜单。
+
+Termux 中的方向键可用于输入框编辑和历史记录；程序会自动启用终端行编辑支持，避免方向键控制码显示为乱码。
 
 ### 使用命令直接操作
 
@@ -115,6 +117,8 @@ END
 
 添加模板时，菜单会显示可用占位符：`{date}`、`{time}`、`{datetime}`、`{year}`、`{month}`、`{day}`、`{timestamp}`、`{username}`、`{hostname}`。
 
+编辑模板时会先显示当前命令，再输入新的命令内容。编辑同样支持多行输入，最后单独输入 `END` 保存。
+
 ### 3. 生成当前命令
 
 ```bash
@@ -122,6 +126,8 @@ gitup gen myproject daily
 ```
 
 该命令只输出替换完成后的命令，不会自动执行。你可以先检查输出，再复制到当前 Git 项目目录执行。
+
+在交互菜单中选择“生成命令”时，只会显示最终命令，然后自动退出菜单返回 Termux。请复制命令，进入目标 Git 目录后手动执行。菜单中的“执行命令”才会自动运行模板。
 
 ### 4. 执行模板
 
@@ -163,6 +169,14 @@ GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`
 ~/.gituploader/
 ```
 
+具体文件结构为：
+
+```text
+~/.gituploader/repos/<仓库名>/config.json
+```
+
+在 Termux 中，`~` 通常是 Termux 的用户主目录。每个 `config.json` 保存对应仓库的全部模板和命令。
+
 请定期备份该目录，以免丢失自己的模板配置。
 
 ## GitHub 自动构建
@@ -174,8 +188,8 @@ GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`
 1. 推送版本标签，自动创建 Release：
 
 ```bash
-git tag v1.0.4
-git push origin v1.0.4
+git tag v1.0.8
+git push origin v1.0.8
 ```
 
 2. 在 GitHub 的 `Actions -> Build GitUploader -> Run workflow` 中勾选 `publish_release`，填写 `release_tag`，然后运行。
@@ -183,7 +197,7 @@ git push origin v1.0.4
 构建成功后打开 `Releases -> Assets`，只下载文件名以 `.deb` 结尾的文件：
 
 ```text
-gituploader_1.0.4_all.deb
+gituploader_1.0.8_all.deb
 ```
 
 不要点击 `Source code (zip)`，它是 GitHub 自动生成的源码压缩包，不是安装包。
@@ -192,22 +206,22 @@ gituploader_1.0.4_all.deb
 
 ```bash
 git add .
-git commit -m "Release gituploader 1.0.5"
+git commit -m "Release gituploader 1.0.8"
 git push origin main
-git tag v1.0.5
-git push origin v1.0.5
+git tag v1.0.8
+git push origin v1.0.8
 ```
 
 请从 GitHub Release 页面 Assets 中下载真正的 `.deb` 文件，例如：
 
 ```text
-gituploader_1.0.5_all.deb
+gituploader_1.0.8_all.deb
 ```
 
 工作流只将 `.deb` 发布为 Release Asset。`.deb` 是 Debian 安装包，不能用解压软件判断其内容，请直接安装：
 
 ```bash
-apt install ./gituploader_1.0.5_all.deb
+apt install ./gituploader_1.0.8_all.deb
 ```
 
 ## 获取帮助
