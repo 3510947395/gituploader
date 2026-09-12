@@ -16,6 +16,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
+
+def _supports_color() -> bool:
+    """仅在交互终端启用颜色，兼容 Termux、Linux 和 Windows。"""
+    return sys.stdout.isatty() and os.getenv("TERM", "") != "dumb"
+
+
+def _style(text: str, code: str) -> str:
+    if not _supports_color():
+        return text
+    return f"\033[{code}m{text}\033[0m"
+
 class GitUploader:
     def __init__(self, config_dir: str = "~/.gituploader"):
         self.CONFIG_DIR = str(Path(config_dir).expanduser())
@@ -154,52 +165,64 @@ class GitUploader:
 def _read_input(prompt: str) -> Optional[str]:
     """读取菜单输入，退出或 EOF 时返回 None。"""
     try:
-        value = input(prompt).strip()
+        return input(prompt).strip()
     except (EOFError, KeyboardInterrupt):
         print()
         return None
-    return value
+
+
+def _add_template_interactively(uploader: GitUploader, repo_name: str) -> None:
+    print(_style(f"\n已创建仓库：{repo_name}", "32"))
+    print("现在添加第一套模板（直接回车可稍后添加）")
+    template_name = _read_input("模板名称: ")
+    if template_name:
+        command = _read_input("命令内容: ")
+        if command:
+            uploader.add_template(repo_name, template_name, command)
 
 
 def interactive_menu(uploader: GitUploader) -> None:
-    """启动交互菜单；明确的命令行参数不会进入这里。"""
+    """启动兼容彩色终端和纯文本终端的交互菜单。"""
     while True:
-        print("\nGitUploader 交互菜单")
-        print("1. 创建仓库配置")
-        print("2. 查看仓库配置")
-        print("3. 添加上传模板")
-        print("4. 查看上传模板")
-        print("5. 生成上传命令")
-        print("6. 执行上传模板")
-        print("0. 退出")
-        choice = _read_input("请选择操作: ")
+        print(_style("\n┌─ GitUploader ─────────────────────┐", "36"))
+        print(_style("│ Git 命令管理 · Termux / Linux / Windows │", "36"))
+        print(_style("├───────────────────────────────────┤", "36"))
+        print("│ 1  创建仓库                         │")
+        print("│ 2  查看仓库                         │")
+        print("│ 3  添加模板                         │")
+        print("│ 4  查看模板                         │")
+        print("│ 5  生成命令                         │")
+        print("│ 6  执行命令                         │")
+        print("│ 0  退出                             │")
+        print(_style("└───────────────────────────────────┘", "36"))
+        choice = _read_input("选择 [0-6]: ")
         if choice is None or choice == "0":
             print("已退出")
             return
         if choice == "1":
-            name = _read_input("仓库配置名称: ")
-            if name:
-                uploader.create_repo(name)
+            name = _read_input("仓库名称: ")
+            if name and uploader.create_repo(name):
+                _add_template_interactively(uploader, name)
         elif choice == "2":
             repos = uploader.list_repos()
-            print("\n".join(f"- {name}" for name in repos) if repos else "没有可用仓库")
+            print("\n".join(f"  * {name}" for name in repos) if repos else "没有可用仓库")
         elif choice == "3":
-            repo_name = _read_input("仓库配置名称: ")
+            repo_name = _read_input("仓库名称: ")
             template_name = _read_input("模板名称: ")
-            command = _read_input("完整上传命令: ")
+            command = _read_input("命令内容: ")
             if repo_name and template_name and command:
                 uploader.add_template(repo_name, template_name, command)
         elif choice == "4":
-            repo_name = _read_input("仓库配置名称: ")
+            repo_name = _read_input("仓库名称: ")
             if repo_name:
                 templates = uploader.list_templates(repo_name)
                 if templates:
                     for name, command in templates.items():
-                        print(f"- {name}: {command}")
+                        print(f"  * {name}: {command}")
                 else:
                     print("没有可用模板")
         elif choice in {"5", "6"}:
-            repo_name = _read_input("仓库配置名称: ")
+            repo_name = _read_input("仓库名称: ")
             template_name = _read_input("模板名称: ")
             if repo_name and template_name:
                 if choice == "5":
@@ -214,87 +237,64 @@ def interactive_menu(uploader: GitUploader) -> None:
 def main(argv=None):
     examples = """示例:
   gitup                              打开交互菜单
-  gitup repo create myproject        创建仓库配置
-  gitup template add myproject daily \"git add . && git push\"
+  gitup repo create myproject        创建仓库
+  gitup template add myproject daily "git add . && git push"
   gitup template list myproject      查看模板
-  gitup generate myproject daily     生成命令，不执行
-  gitup run myproject daily          执行模板命令
+  gitup gen myproject daily          生成命令，不执行
+  gitup run myproject daily          执行命令
 """
     parser = argparse.ArgumentParser(
-        description="GitUploader - Git上传命令生成工具",
+        description="GitUploader - Git 命令管理工具",
         epilog=examples,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--version", action="version", version="gituploader 1.0.2")
+    parser.add_argument("--version", action="version", version="gituploader 1.0.3")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
-    
-    # repo 命令
+
     repo_parser = subparsers.add_parser("repo", help="仓库管理")
     repo_subparsers = repo_parser.add_subparsers(dest="repo_command")
-    
-    # repo create
     create_parser = repo_subparsers.add_parser("create", help="创建仓库")
     create_parser.add_argument("name", help="仓库名称")
-    
-    # repo list
     repo_subparsers.add_parser("list", help="列出仓库")
-    
-    # template 命令
+
     template_parser = subparsers.add_parser("template", help="模板管理")
     template_subparsers = template_parser.add_subparsers(dest="template_command")
-    
-    # template add
     add_parser = template_subparsers.add_parser("add", help="添加模板")
     add_parser.add_argument("repo_name", help="仓库名称")
     add_parser.add_argument("template_name", help="模板名称")
-    add_parser.add_argument("command", help="命令模板")
+    add_parser.add_argument("command", help="命令内容")
+    list_parser = template_subparsers.add_parser("list", help="列出模板")
+    list_parser.add_argument("repo_name", help="仓库名称")
 
-    list_templates_parser = template_subparsers.add_parser("list", help="列出仓库模板")
-    list_templates_parser.add_argument("repo_name", help="仓库名称")
-    
-    # run 命令
-    run_parser = subparsers.add_parser("run", help="运行模板")
+    run_parser = subparsers.add_parser("run", help="执行模板命令")
     run_parser.add_argument("repo_name", help="仓库名称")
     run_parser.add_argument("template_name", help="模板名称")
+    gen_parser = subparsers.add_parser("gen", aliases=["generate"], help="生成命令")
+    gen_parser.add_argument("repo_name", help="仓库名称")
+    gen_parser.add_argument("template_name", help="模板名称")
 
-    # generate 命令
-    generate_parser = subparsers.add_parser("generate", help="输出替换后的上传命令")
-    generate_parser.add_argument("repo_name", help="仓库名称")
-    generate_parser.add_argument("template_name", help="模板名称")
-    
     command_args = sys.argv[1:] if argv is None else argv
     if not command_args:
         interactive_menu(GitUploader())
         return 0
-
     args = parser.parse_args(command_args)
-    
     uploader = GitUploader()
-    
+
     if args.command == "repo":
         if args.repo_command == "create":
             uploader.create_repo(args.name)
         elif args.repo_command == "list":
             repos = uploader.list_repos()
-            if repos:
-                print("可用仓库:")
-                for repo in repos:
-                    print(f"- {repo}")
-            else:
-                print("没有可用仓库")
+            print("可用仓库:\n" + "\n".join(f"- {repo}" for repo in repos) if repos else "没有可用仓库")
     elif args.command == "template":
         if args.template_command == "add":
             uploader.add_template(args.repo_name, args.template_name, args.command)
         elif args.template_command == "list":
             templates = uploader.list_templates(args.repo_name)
-            if not templates:
-                print("没有可用模板")
-            else:
-                for name, command in templates.items():
-                    print(f"- {name}: {command}")
+            print("没有可用模板" if not templates else "\n".join(f"- {name}: {command}" for name, command in templates.items()))
     elif args.command == "run":
         uploader.run_template(args.repo_name, args.template_name)
-    elif args.command == "generate":
+    elif args.command in {"gen", "generate"}:
         generated = uploader.generate_template(args.repo_name, args.template_name)
         if generated is None:
             print("仓库或模板不存在")
@@ -302,8 +302,8 @@ def main(argv=None):
         print(generated)
     else:
         parser.print_help()
-
     return 0
+
 
 if __name__ == "__main__":
     main()

@@ -128,6 +128,24 @@ class TestGitUploader(unittest.TestCase):
         self.assertEqual(main(['repo', 'list']), 0)
         interactive_menu.assert_not_called()
 
+    def test_gen_is_short_alias_for_generate(self):
+        """测试 gen 和旧 generate 命令都能生成命令"""
+        self.gitup.create_repo('test_repo')
+        self.gitup.add_template('test_repo', 'daily', 'echo {date}')
+        with patch('gitup.GitUploader', return_value=self.gitup), patch('builtins.print') as output:
+            self.assertEqual(main(['gen', 'test_repo', 'daily']), 0)
+            self.assertEqual(main(['generate', 'test_repo', 'daily']), 0)
+        self.assertEqual(output.call_count, 2)
+
+    def test_create_repo_menu_adds_first_template(self):
+        """测试创建仓库后自动进入首个模板创建"""
+        uploader = GitUploader(self.config_dir)
+        with patch('gitup._read_input', side_effect=['1', 'new_repo', 'daily', 'echo ok', '0']):
+            with patch('builtins.print'):
+                from gitup import interactive_menu
+                interactive_menu(uploader)
+        self.assertEqual(uploader.list_templates('new_repo')['daily'], 'echo ok')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -12,7 +12,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name="gituploader",
-    version="1.0.2",
+    version="1.0.3",
     author="GitUploader Team",
     author_email="contact@gituploader.com",
     description="Git上传命令生成工具",

@@ -34,14 +34,10 @@ jobs:
       - name: Build Debian package
         run: python build_deb.py --prefix /data/data/com.termux/files/usr --output dist/deb
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: gituploader-builds
-          path: |
-            dist/*.whl
-            dist/*.tar.gz
-            dist/deb/*.deb
+      - name: Verify Debian package
+        run: |
+          test -f dist/deb/gituploader_1.0.3_all.deb
+          file dist/deb/gituploader_1.0.3_all.deb
 
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/')

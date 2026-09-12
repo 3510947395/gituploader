@@ -2,7 +2,7 @@
 
 GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
-你可以按项目创建多个“仓库配置”，再为每个项目保存多套上传模板。例如：日常提交、发布版本、提交并推送等。模板中的固定命令保持不变，日期、时间、用户名等实时内容会在使用时自动替换。
+你可以按项目创建多个“仓库”，再为每个仓库保存多套命令模板。模板中的固定命令保持不变，日期、时间、用户名等实时内容会在使用时自动替换。
 
 ## 安装
 
@@ -12,7 +12,7 @@ GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
 ```bash
 apt update
-apt install ./gituploader_1.0.2_all.deb
+apt install ./gituploader_1.0.3_all.deb
 gitup -h
 ```
 
@@ -45,7 +45,7 @@ gitup -h
 gitup
 ```
 
-菜单支持创建仓库配置、查看仓库、添加模板、查看模板、生成命令和执行模板。输入 `0` 可以退出菜单。
+菜单支持创建仓库、查看仓库、添加模板、查看模板、生成命令和执行模板。输入 `0` 可以退出菜单。
 
 ### 使用命令直接操作
 
@@ -54,16 +54,16 @@ gitup
 ```bash
 gitup repo create myproject
 gitup template list myproject
-gitup generate myproject daily
+gitup gen myproject daily
 ```
 
-### 1. 创建项目配置
+### 1. 创建仓库
 
 ```bash
 gitup repo create myproject
 ```
 
-`myproject` 是 GitUploader 中的配置名称，可以为不同项目分别创建配置。
+`myproject` 是 GitUploader 中保存命令模板的仓库名称。
 
 查看已有配置：
 
@@ -71,7 +71,7 @@ gitup repo create myproject
 gitup repo list
 ```
 
-### 2. 创建上传模板
+### 2. 创建命令模板
 
 ```bash
 gitup template add myproject daily "git add . && git commit -m 'Update {date}' && git push"
@@ -90,10 +90,10 @@ gitup template add myproject commit "git add . && git commit -m 'Update {date} {
 gitup template add myproject release "git add . && git commit -m 'Release {year}.{month}.{day}' && git push --tags"
 ```
 
-### 3. 生成当前上传命令
+### 3. 生成当前命令
 
 ```bash
-gitup generate myproject daily
+gitup gen myproject daily
 ```
 
 该命令只输出替换完成后的命令，不会自动执行。你可以先检查输出，再复制到当前 Git 项目目录执行。
@@ -144,13 +144,23 @@ GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`
 
 项目发布新版本时，GitHub Actions 会自动构建 Python 安装包和 Termux/Debian `.deb` 安装包。
 
+发布新版本：
+
+```bash
+git add .
+git commit -m "Release gituploader 1.0.3"
+git push origin main
+git tag v1.0.3
+git push origin v1.0.3
+```
+
 请从 GitHub Release 页面 Assets 中下载真正的 `.deb` 文件，例如：
 
 ```text
-gituploader_1.0.2_all.deb
+gituploader_1.0.3_all.deb
 ```
 
-不要下载 Actions 的 Artifacts。GitHub 会把 Artifact 自动打包成 `.zip`，那只是构建产物下载包，不是 Debian 安装包。
+工作流不会把安装包上传为 Actions Artifact。Release 页面中的 `.deb` 是原始 Debian 文件，可以直接用于 `apt install`，不会是 `.zip`。
 
 ## 获取帮助
 
@@ -158,5 +168,5 @@ gituploader_1.0.2_all.deb
 gitup -h
 gitup repo -h
 gitup template -h
-gitup generate -h
+gitup gen -h
 ```
