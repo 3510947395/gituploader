@@ -12,7 +12,7 @@ GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
 ```bash
 apt update
-apt install ./gituploader_1.0.1_all.deb
+apt install ./gituploader_1.0.2_all.deb
 gitup -h
 ```
 
@@ -142,7 +142,15 @@ GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`
 
 ## GitHub 自动构建
 
-项目发布新版本时，GitHub Actions 会自动构建 Python 安装包和 Termux/Debian `.deb` 安装包。用户通常只需要从 GitHub Releases 下载最新 `.deb` 文件，不需要自行编译。
+项目发布新版本时，GitHub Actions 会自动构建 Python 安装包和 Termux/Debian `.deb` 安装包。
+
+请从 GitHub Release 页面 Assets 中下载真正的 `.deb` 文件，例如：
+
+```text
+gituploader_1.0.2_all.deb
+```
+
+不要下载 Actions 的 Artifacts。GitHub 会把 Artifact 自动打包成 `.zip`，那只是构建产物下载包，不是 Debian 安装包。
 
 ## 获取帮助
 
