@@ -181,6 +181,7 @@ class TestGitUploader(unittest.TestCase):
             self.assertTrue(_print_generated_command(self.gitup))
         run_command.assert_not_called()
         self.assertTrue(any('echo ' in call.args[0] for call in output.call_args_list if call.args))
+        self.assertFalse(any('已退出菜单' in call.args[0] for call in output.call_args_list if call.args))
 
     def test_edit_menu_shows_existing_command(self):
         """测试编辑菜单会显示旧命令"""

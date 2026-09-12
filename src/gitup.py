@@ -273,7 +273,6 @@ def _print_generated_command(uploader: GitUploader) -> bool:
         return False
     print("\n生成的命令（请复制到目标 Git 目录手动执行）：")
     print(command)
-    print("已退出菜单")
     return True
 
 
