@@ -12,7 +12,7 @@ GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
 ```bash
 apt update
-apt install ./gituploader_1.0.4_all.deb
+apt install ./gituploader_1.0.5_all.deb
 gitup -h
 ```
 
@@ -45,7 +45,7 @@ gitup -h
 gitup
 ```
 
-菜单支持创建仓库、查看仓库、添加模板、查看模板、生成命令和执行模板。输入 `0` 可以退出菜单。
+菜单支持创建仓库、查看仓库、添加模板、查看模板、编辑模板、删除模板、生成命令和执行模板。输入 `0` 可以退出菜单。
 
 ### 使用命令直接操作
 
@@ -82,6 +82,20 @@ gitup template add myproject daily "git add . && git commit -m 'Update {date}' &
 ```bash
 gitup template list myproject
 ```
+
+编辑模板命令：
+
+```bash
+gitup template edit myproject daily "git add . && git commit -m 'Update {date}' && git push --tags"
+```
+
+删除模板：
+
+```bash
+gitup template delete myproject daily
+```
+
+也可以使用 `remove` 作为 `delete` 的别名。删除前请确认模板名称，命令行删除会直接执行。
 
 一个项目可以保存多套模板，例如：
 
@@ -178,22 +192,22 @@ gituploader_1.0.4_all.deb
 
 ```bash
 git add .
-git commit -m "Release gituploader 1.0.4"
+git commit -m "Release gituploader 1.0.5"
 git push origin main
-git tag v1.0.4
-git push origin v1.0.4
+git tag v1.0.5
+git push origin v1.0.5
 ```
 
 请从 GitHub Release 页面 Assets 中下载真正的 `.deb` 文件，例如：
 
 ```text
-gituploader_1.0.4_all.deb
+gituploader_1.0.5_all.deb
 ```
 
 工作流只将 `.deb` 发布为 Release Asset。`.deb` 是 Debian 安装包，不能用解压软件判断其内容，请直接安装：
 
 ```bash
-apt install ./gituploader_1.0.4_all.deb
+apt install ./gituploader_1.0.5_all.deb
 ```
 
 ## 获取帮助

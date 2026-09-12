@@ -108,6 +108,37 @@ class GitUploader:
             return {}
         return dict(config.get("templates", {}))
 
+    def edit_template(self, repo_name: str, template_name: str, command: str) -> bool:
+        """修改已有模板的命令内容。"""
+        if not command.strip():
+            print("命令内容不能为空")
+            return False
+        config = self._read_repo(repo_name)
+        if config is None:
+            print(f"仓库 '{repo_name}' 不存在")
+            return False
+        if template_name not in config.get("templates", {}):
+            print(f"模板 '{template_name}' 不存在")
+            return False
+        config["templates"][template_name] = command
+        self._write_repo(repo_name, config)
+        print(f"模板 '{template_name}' 已更新")
+        return True
+
+    def delete_template(self, repo_name: str, template_name: str) -> bool:
+        """删除已有模板。"""
+        config = self._read_repo(repo_name)
+        if config is None:
+            print(f"仓库 '{repo_name}' 不存在")
+            return False
+        if template_name not in config.get("templates", {}):
+            print(f"模板 '{template_name}' 不存在")
+            return False
+        del config["templates"][template_name]
+        self._write_repo(repo_name, config)
+        print(f"模板 '{template_name}' 已删除")
+        return True
+
     def generate_template(self, repo_name: str, template_name: str) -> Optional[str]:
         """生成替换实时占位符后的命令，但不执行。"""
         templates = self.list_templates(repo_name)
@@ -208,11 +239,13 @@ def interactive_menu(uploader: GitUploader) -> None:
         print("│ 2  查看仓库                         │")
         print("│ 3  添加模板                         │")
         print("│ 4  查看模板                         │")
-        print("│ 5  生成命令                         │")
-        print("│ 6  执行命令                         │")
+        print("│ 5  编辑模板                         │")
+        print("│ 6  删除模板                         │")
+        print("│ 7  生成命令                         │")
+        print("│ 8  执行命令                         │")
         print("│ 0  退出                             │")
         print(_style("└───────────────────────────────────┘", "36"))
-        choice = _read_input("选择 [0-6]: ")
+        choice = _read_input("选择 [0-8]: ")
         if choice is None or choice == "0":
             print("已退出")
             return
@@ -240,11 +273,29 @@ def interactive_menu(uploader: GitUploader) -> None:
                         print(f"  * {name}: {command}")
                 else:
                     print("没有可用模板")
-        elif choice in {"5", "6"}:
+        elif choice == "5":
             repo_name = _read_input("仓库名称: ")
             template_name = _read_input("模板名称: ")
             if repo_name and template_name:
-                if choice == "5":
+                print("可用占位符：{date} {time} {datetime} {year} {month} {day}")
+                print("             {timestamp} {username} {hostname}")
+                command = _read_multiline("新的命令内容（支持多行）:")
+                if command:
+                    uploader.edit_template(repo_name, template_name, command)
+        elif choice == "6":
+            repo_name = _read_input("仓库名称: ")
+            template_name = _read_input("模板名称: ")
+            if repo_name and template_name:
+                confirm = _read_input(f"确定删除模板 '{template_name}'？输入 y 确认: ")
+                if confirm and confirm.lower() == "y":
+                    uploader.delete_template(repo_name, template_name)
+                else:
+                    print("已取消删除")
+        elif choice in {"7", "8"}:
+            repo_name = _read_input("仓库名称: ")
+            template_name = _read_input("模板名称: ")
+            if repo_name and template_name:
+                if choice == "7":
                     command = uploader.generate_template(repo_name, template_name)
                     print(command if command is not None else "仓库或模板不存在")
                 else:
@@ -259,6 +310,8 @@ def main(argv=None):
   gitup repo create myproject        创建仓库
   gitup template add myproject daily "git add . && git push"
   gitup template list myproject      查看模板
+    gitup template edit myproject daily "git add . && git push --tags"
+    gitup template delete myproject daily 删除模板
   gitup gen myproject daily          生成命令，不执行
   gitup run myproject daily          执行命令
 """
@@ -267,7 +320,7 @@ def main(argv=None):
         epilog=examples,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--version", action="version", version="gituploader 1.0.4")
+    parser.add_argument("--version", action="version", version="gituploader 1.0.5")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
 
     repo_parser = subparsers.add_parser("repo", help="仓库管理")
@@ -282,6 +335,15 @@ def main(argv=None):
     add_parser.add_argument("repo_name", help="仓库名称")
     add_parser.add_argument("template_name", help="模板名称")
     add_parser.add_argument("command", help="命令内容")
+    edit_parser = template_subparsers.add_parser("edit", help="编辑模板")
+    edit_parser.add_argument("repo_name", help="仓库名称")
+    edit_parser.add_argument("template_name", help="模板名称")
+    edit_parser.add_argument("command", help="新的命令内容")
+    delete_parser = template_subparsers.add_parser(
+        "delete", aliases=["remove"], help="删除模板"
+    )
+    delete_parser.add_argument("repo_name", help="仓库名称")
+    delete_parser.add_argument("template_name", help="模板名称")
     list_parser = template_subparsers.add_parser("list", help="列出模板")
     list_parser.add_argument("repo_name", help="仓库名称")
 
@@ -308,6 +370,10 @@ def main(argv=None):
     elif args.command == "template":
         if args.template_command == "add":
             uploader.add_template(args.repo_name, args.template_name, args.command)
+        elif args.template_command == "edit":
+            uploader.edit_template(args.repo_name, args.template_name, args.command)
+        elif args.template_command in {"delete", "remove"}:
+            uploader.delete_template(args.repo_name, args.template_name)
         elif args.template_command == "list":
             templates = uploader.list_templates(args.repo_name)
             print("没有可用模板" if not templates else "\n".join(f"- {name}: {command}" for name, command in templates.items()))

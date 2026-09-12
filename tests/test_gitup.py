@@ -78,6 +78,23 @@ class TestGitUploader(unittest.TestCase):
         """测试向不存在的仓库添加模板"""
         result = self.gitup.add_template('nonexistent', 'test', 'git add .')
         self.assertFalse(result)
+
+    def test_edit_template(self):
+        """测试编辑模板命令"""
+        self.gitup.create_repo('test_repo')
+        self.gitup.add_template('test_repo', 'daily', 'echo old')
+
+        self.assertTrue(self.gitup.edit_template('test_repo', 'daily', 'echo new\ngit push'))
+        self.assertEqual(self.gitup.list_templates('test_repo')['daily'], 'echo new\ngit push')
+
+    def test_delete_template(self):
+        """测试删除模板"""
+        self.gitup.create_repo('test_repo')
+        self.gitup.add_template('test_repo', 'daily', 'echo old')
+
+        self.assertTrue(self.gitup.delete_template('test_repo', 'daily'))
+        self.assertNotIn('daily', self.gitup.list_templates('test_repo'))
+        self.assertFalse(self.gitup.delete_template('test_repo', 'daily'))
     
     def test_run_template(self):
         """测试运行模板"""
