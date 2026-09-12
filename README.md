@@ -12,7 +12,7 @@ GitUploader 是一个运行在 Termux 中的 Git 上传命令生成工具。
 
 ```bash
 apt update
-apt install ./gituploader_1.0.3_all.deb
+apt install ./gituploader_1.0.4_all.deb
 gitup -h
 ```
 
@@ -90,6 +90,17 @@ gitup template add myproject commit "git add . && git commit -m 'Update {date} {
 gitup template add myproject release "git add . && git commit -m 'Release {year}.{month}.{day}' && git push --tags"
 ```
 
+在交互菜单中添加模板时支持多行命令：逐行输入或粘贴命令，最后单独输入 `END` 保存。例如：
+
+```text
+git add .
+git commit -m "Update {date}"
+git push
+END
+```
+
+添加模板时，菜单会显示可用占位符：`{date}`、`{time}`、`{datetime}`、`{year}`、`{month}`、`{day}`、`{timestamp}`、`{username}`、`{hostname}`。
+
 ### 3. 生成当前命令
 
 ```bash
@@ -149,8 +160,8 @@ GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`
 1. 推送版本标签，自动创建 Release：
 
 ```bash
-git tag v1.0.3
-git push origin v1.0.3
+git tag v1.0.4
+git push origin v1.0.4
 ```
 
 2. 在 GitHub 的 `Actions -> Build GitUploader -> Run workflow` 中勾选 `publish_release`，填写 `release_tag`，然后运行。
@@ -158,7 +169,7 @@ git push origin v1.0.3
 构建成功后打开 `Releases -> Assets`，只下载文件名以 `.deb` 结尾的文件：
 
 ```text
-gituploader_1.0.3_all.deb
+gituploader_1.0.4_all.deb
 ```
 
 不要点击 `Source code (zip)`，它是 GitHub 自动生成的源码压缩包，不是安装包。
@@ -167,22 +178,22 @@ gituploader_1.0.3_all.deb
 
 ```bash
 git add .
-git commit -m "Release gituploader 1.0.3"
+git commit -m "Release gituploader 1.0.4"
 git push origin main
-git tag v1.0.3
-git push origin v1.0.3
+git tag v1.0.4
+git push origin v1.0.4
 ```
 
 请从 GitHub Release 页面 Assets 中下载真正的 `.deb` 文件，例如：
 
 ```text
-gituploader_1.0.3_all.deb
+gituploader_1.0.4_all.deb
 ```
 
 工作流只将 `.deb` 发布为 Release Asset。`.deb` 是 Debian 安装包，不能用解压软件判断其内容，请直接安装：
 
 ```bash
-apt install ./gituploader_1.0.3_all.deb
+apt install ./gituploader_1.0.4_all.deb
 ```
 
 ## 获取帮助

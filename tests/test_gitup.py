@@ -140,11 +140,17 @@ class TestGitUploader(unittest.TestCase):
     def test_create_repo_menu_adds_first_template(self):
         """测试创建仓库后自动进入首个模板创建"""
         uploader = GitUploader(self.config_dir)
-        with patch('gitup._read_input', side_effect=['1', 'new_repo', 'daily', 'echo ok', '0']):
+        with patch('gitup._read_input', side_effect=['1', 'new_repo', 'daily', 'echo ok', 'END', '0']):
             with patch('builtins.print'):
                 from gitup import interactive_menu
                 interactive_menu(uploader)
         self.assertEqual(uploader.list_templates('new_repo')['daily'], 'echo ok')
+
+    def test_multiline_template_input(self):
+        """测试模板命令支持多行输入"""
+        from gitup import _read_multiline
+        with patch('gitup._read_input', side_effect=['git add .', 'git push', 'END']):
+            self.assertEqual(_read_multiline('命令'), 'git add .\ngit push')
 
 
 if __name__ == '__main__':

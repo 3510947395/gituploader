@@ -18,7 +18,7 @@ from typing import Dict, List, Optional
 
 
 def _supports_color() -> bool:
-    """仅在交互终端启用颜色，兼容 Termux、Linux 和 Windows。"""
+    """仅在 Termux 交互终端启用颜色。"""
     return sys.stdout.isatty() and os.getenv("TERM", "") != "dumb"
 
 
@@ -171,12 +171,29 @@ def _read_input(prompt: str) -> Optional[str]:
         return None
 
 
+def _read_multiline(prompt: str, end_marker: str = "END") -> Optional[str]:
+    """读取可粘贴的多行命令，单独输入 END 表示结束。"""
+    print(prompt)
+    print(f"输入完成后，单独输入 {end_marker} 保存；直接输入 {end_marker} 取消")
+    lines = []
+    while True:
+        line = _read_input("| ")
+        if line is None:
+            return None
+        if line == end_marker:
+            command = "\n".join(lines).strip()
+            return command or None
+        lines.append(line)
+
+
 def _add_template_interactively(uploader: GitUploader, repo_name: str) -> None:
     print(_style(f"\n已创建仓库：{repo_name}", "32"))
     print("现在添加第一套模板（直接回车可稍后添加）")
     template_name = _read_input("模板名称: ")
     if template_name:
-        command = _read_input("命令内容: ")
+        print("可用占位符：{date} {time} {datetime} {year} {month} {day}")
+        print("             {timestamp} {username} {hostname}")
+        command = _read_multiline("命令内容（支持多行）:")
         if command:
             uploader.add_template(repo_name, template_name, command)
 
@@ -185,7 +202,7 @@ def interactive_menu(uploader: GitUploader) -> None:
     """启动兼容彩色终端和纯文本终端的交互菜单。"""
     while True:
         print(_style("\n┌─ GitUploader ─────────────────────┐", "36"))
-        print(_style("│ Git 命令管理 · Termux / Linux / Windows │", "36"))
+        print(_style("│ Git 命令管理 · Termux │", "36"))
         print(_style("├───────────────────────────────────┤", "36"))
         print("│ 1  创建仓库                         │")
         print("│ 2  查看仓库                         │")
@@ -209,7 +226,9 @@ def interactive_menu(uploader: GitUploader) -> None:
         elif choice == "3":
             repo_name = _read_input("仓库名称: ")
             template_name = _read_input("模板名称: ")
-            command = _read_input("命令内容: ")
+            print("可用占位符：{date} {time} {datetime} {year} {month} {day}")
+            print("             {timestamp} {username} {hostname}")
+            command = _read_multiline("命令内容（支持多行）:")
             if repo_name and template_name and command:
                 uploader.add_template(repo_name, template_name, command)
         elif choice == "4":
@@ -248,7 +267,7 @@ def main(argv=None):
         epilog=examples,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--version", action="version", version="gituploader 1.0.3")
+    parser.add_argument("--version", action="version", version="gituploader 1.0.4")
     subparsers = parser.add_subparsers(dest="command", help="可用命令")
 
     repo_parser = subparsers.add_parser("repo", help="仓库管理")
