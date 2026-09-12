@@ -144,6 +144,19 @@ GitUploader 也兼容以下旧格式：`%Y-%m-%d`、`%H:%M:%S`、`%username`、`
 
 项目发布新版本时，GitHub Actions 会自动构建 Python 安装包和 Termux/Debian `.deb` 安装包。
 
+如果只是推送普通代码，Actions 只进行编译检查，不会创建下载页面。要得到可直接下载的 `.deb`，有两种方式：
+
+1. 推送版本标签，自动创建 Release：
+
+```bash
+git tag v1.0.3
+git push origin v1.0.3
+```
+
+2. 在 GitHub 的 `Actions -> Build GitUploader -> Run workflow` 中勾选 `publish_release`，填写 `release_tag`，然后运行。
+
+构建成功后打开 `Releases -> Assets`，下载原始的 `.deb` 文件。
+
 发布新版本：
 
 ```bash
